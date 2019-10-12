@@ -4,6 +4,7 @@ import (
 	"gush/services"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/url"
 	"os"
 
@@ -12,15 +13,30 @@ import (
 	"github.com/kataras/iris/middleware/recover"
 )
 
-// port - The port the service is running on
-const DEFAULT_HTTP_PORT = "8080"
+// defaultHTTPPort The default port the service is running on
+const defaultHTTPPort = "8080"
 
 // CreateShortURL Creates a short URL
 func createShortURL(ctx iris.Context) {
 
+	// Validate "Content-Type" header
+	mediaType, _, err := mime.ParseMediaType(ctx.GetHeader("Content-Type"))
+	if err != nil {
+		log.Printf("An error occurred when Content-Type header: %v", err)
+		ctx.StatusCode(iris.StatusUnsupportedMediaType)
+		return
+	}
+	if mediaType != "text/plain" {
+		log.Printf("Unsupported media type: %s", mediaType)
+		ctx.StatusCode(iris.StatusUnsupportedMediaType)
+		return
+	}
+
 	rawBodyAsBytes, err := ioutil.ReadAll(ctx.Request().Body)
 	if err != nil {
-		ctx.Writef("%v", err)
+		log.Printf("An error occurred when parsing body: %v", err)
+		ctx.StatusCode(iris.StatusInternalServerError)
+		return
 	}
 
 	urlToShorten := string(rawBodyAsBytes)
@@ -89,7 +105,7 @@ func Run() {
 
 	envPort, ok := os.LookupEnv("HTTP_PORT")
 	if !ok || len(envPort) == 0 {
-		envPort = DEFAULT_HTTP_PORT
+		envPort = defaultHTTPPort
 	}
 
 	port := ":" + envPort
