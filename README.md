@@ -52,5 +52,9 @@ Endpoint to request info on an URL.
     https://www.url.com
 
 
+## Environment variables
+
+- `HTTP_PORT` (default `8080`)
+
 ## Todo
 [ ] Implement a database
