@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/middleware/logger"
@@ -12,7 +13,7 @@ import (
 )
 
 // port - The port the service is running on
-const port = "8080"
+const DEFAULT_HTTP_PORT = "8080"
 
 // CreateShortURL Creates a short URL
 func createShortURL(ctx iris.Context) {
@@ -86,5 +87,12 @@ func Run() {
 	app.Get("/{hash:string}", redirectShortURL)
 	app.Get("/info/{hash:string}", getURLInfo)
 
-	app.Run(iris.Addr(":"+port), iris.WithoutServerError(iris.ErrServerClosed))
+	envPort, ok := os.LookupEnv("HTTP_PORT")
+	if !ok || len(envPort) == 0 {
+		envPort = DEFAULT_HTTP_PORT
+	}
+
+	port := ":" + envPort
+
+	app.Run(iris.Addr(port), iris.WithoutServerError(iris.ErrServerClosed))
 }
