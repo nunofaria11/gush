@@ -36,3 +36,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root-package = "gush"
+  go-version = "1.13.1"
