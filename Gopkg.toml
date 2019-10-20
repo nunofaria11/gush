@@ -40,4 +40,3 @@
 [metadata.heroku]
   root-package = "gush"
   go-version = "1.13.1"
-  install = [ "./..." ]
