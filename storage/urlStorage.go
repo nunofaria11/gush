@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	dbName                  = "gush-db"
-	collName                = "url-list"
+	dbName                  = "gushdb"
+	collName                = "urllist"
 	defaultConnectionString = "mongodb://localhost:27017"
 )
 
@@ -28,7 +28,8 @@ func getMongoDBConnectionString() string {
 		user, _ := os.LookupEnv("MONGO_USER")
 		password, _ := os.LookupEnv("MONGO_PASSWORD")
 		port, _ := os.LookupEnv("MONGO_PORT")
-		connectionString = fmt.Sprintf("mongodb://%v:%v@%v:%v", user, password, url, port)
+		path, _ := os.LookupEnv("MONGO_PATH")
+		connectionString = fmt.Sprintf("mongodb://%v:%v@%v:%v/%v", user, password, url, port, path)
 	} else {
 		connectionString = defaultConnectionString
 	}
