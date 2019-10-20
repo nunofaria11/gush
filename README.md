@@ -9,7 +9,7 @@ The endpoint to create the short URL.
 
 **Request**
 
-    POST gush.io
+    POST gush-url
     Content-Type: text/plain
     
     https://www.url.com
@@ -20,7 +20,7 @@ The endpoint to create the short URL.
     Content-Type: text/plain
     Expires: <Date>
     
-    gush.io/xyz123
+    gush-url/xyz123
 
 ### URL Redirect
 
@@ -28,7 +28,7 @@ When accessing a registered URL a redirect should be done to original URL
 
 **Request**
 
-    GET gush.io/xyz123
+    GET gush-url/xyz123
 
 **Response**
 
@@ -41,7 +41,7 @@ Endpoint to request info on an URL.
 
 **Request**
 
-    GET gush.io/info/xyz123
+    GET gush-url/info/xyz123
 
 **Response**
 
@@ -55,6 +55,7 @@ Endpoint to request info on an URL.
 ## Environment variables
 
 - `HTTP_PORT` (default `8080`)
-
-## Todo
-[ ] Implement a database
+- `MONGO_URL`
+- `MONGO_PORT`
+- `MONGO_USERNAME`
+- `MONGO_PASSWORD`

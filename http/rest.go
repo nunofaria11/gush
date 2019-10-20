@@ -86,7 +86,7 @@ func getURLInfo(ctx iris.Context) {
 		return
 	}
 
-	ctx.Header("Last-Modified", urlInfo.Time.UTC().String())
+	ctx.Header("Last-Modified", urlInfo.CreatedAt.UTC().String())
 	ctx.Writef(urlInfo.URL)
 }
 
