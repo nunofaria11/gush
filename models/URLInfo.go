@@ -2,8 +2,9 @@ package models
 
 import "time"
 
-// URLInfo Type used to hold URL info in memory
+// URLInfo in used to hold URL information
 type URLInfo struct {
-	URL  string
-	Time time.Time
+	URL       string    `json:"url"`
+	Hash      string    `json:"hash"`
+	CreatedAt time.Time `json:"created_at"`
 }

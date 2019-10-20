@@ -2,6 +2,7 @@ package services
 
 import (
 	"gush/models"
+	"gush/storage"
 	"log"
 	"math/rand"
 	"time"
@@ -26,15 +27,21 @@ func generateHash(strlen int) string {
 	return string(result)
 }
 
-func createURLInfo(url string) *models.URLInfo {
-	ui := models.URLInfo{url, time.Now()}
-	return &ui
+func createURLInfo(url string, hash string) *models.URLInfo {
+	info := models.URLInfo{URL: url, Hash: hash, CreatedAt: time.Now()}
+	return &info
 }
 
 // GetShortURLInfo Retrieves a URLInfo object
 func GetShortURLInfo(hash string) (*models.URLInfo, bool) {
-	urlInfo, ok := shortURLMap[hash]
-	return urlInfo, ok
+
+	urlInfo, err := storage.FetchURLInfo(hash)
+
+	if err != nil {
+		return nil, false
+	}
+
+	return urlInfo, true
 }
 
 // SetShortURL Stores a URLInfo object and associates with the hash
@@ -42,15 +49,20 @@ func SetShortURL(urlToShorten string) (string, bool) {
 
 	var hash string
 
-	urlInfo := createURLInfo(urlToShorten)
 	exists := true
 
 	for exists {
-		hash = generateHash(8)
-		_, exists = shortURLMap[hash]
+		hash = generateHash(6)
+		_, exists = GetShortURLInfo(hash)
 	}
 
-	shortURLMap[hash] = urlInfo
+	urlInfo := createURLInfo(urlToShorten, hash)
+
+	err := storage.StoreURLInfo(urlInfo)
+	if err != nil {
+		return "", false
+	}
+
 	log.Printf("Setting URL info with hash: %v", hash)
 	return hash, true
 }
