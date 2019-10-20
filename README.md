@@ -57,5 +57,6 @@ Endpoint to request info on an URL.
 - `HTTP_PORT` (default `8080`)
 - `MONGO_URL`
 - `MONGO_PORT`
+- `MONGO_PATH`
 - `MONGO_USERNAME`
 - `MONGO_PASSWORD`
