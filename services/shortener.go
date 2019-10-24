@@ -45,7 +45,7 @@ func GetShortURLInfo(hash string) (*models.URLInfo, bool) {
 }
 
 // SetShortURL Stores a URLInfo object and associates with the hash
-func SetShortURL(urlToShorten string) (string, bool) {
+func SetShortURL(urlToShorten string) (string, error) {
 
 	var hash string
 
@@ -60,9 +60,9 @@ func SetShortURL(urlToShorten string) (string, bool) {
 
 	err := storage.StoreURLInfo(urlInfo)
 	if err != nil {
-		return "", false
+		return "", err
 	}
 
 	log.Printf("Setting URL info with hash: %v", hash)
-	return hash, true
+	return hash, nil
 }
