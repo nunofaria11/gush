@@ -98,6 +98,14 @@
   revision = "ff6b7dc882cf4cfba7ee0b9f7dcc1ac096c554aa"
 
 [[projects]]
+  digest = "1:cbec35fe4d5a4fba369a656a8cd65e244ea2c743007d8f6c1ccb132acf9d1296"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+  version = "v1.7.3"
+
+[[projects]]
   digest = "1:8a2a940fd81980cd5394dbb60a8f9ab49b5d8195e52cddec562b9a40eab394f0"
   name = "github.com/iris-contrib/blackfriday"
   packages = ["."]
@@ -382,9 +390,8 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/gorilla/mux",
     "github.com/kataras/iris",
-    "github.com/kataras/iris/middleware/logger",
-    "github.com/kataras/iris/middleware/recover",
     "go.mongodb.org/mongo-driver/mongo",
     "go.mongodb.org/mongo-driver/mongo/options",
     "gopkg.in/mgo.v2/bson"

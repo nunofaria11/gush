@@ -1,41 +1,52 @@
 package http
 
 import (
+	"fmt"
 	"gush/services"
 	"io/ioutil"
 	"log"
 	"mime"
-	"net/url"
+	"net/http"
 	"os"
 
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/middleware/logger"
-	"github.com/kataras/iris/middleware/recover"
+	"github.com/gorilla/mux"
 )
 
-// defaultHTTPPort The default port the service is running on
 const defaultHTTPPort = "8080"
 
-// CreateShortURL Creates a short URL
-func createShortURL(ctx iris.Context) {
+func buildRedirectURL(r *http.Request, hash string) string {
+	var scheme, host string
+
+	if r.TLS != nil {
+		scheme = "https"
+	} else {
+		scheme = "http"
+	}
+	host = r.Host
+
+	return fmt.Sprintf("%v://%v/%v", scheme, host, hash)
+}
+
+func postShortURL(w http.ResponseWriter, r *http.Request) {
 
 	// Validate "Content-Type" header
-	mediaType, _, err := mime.ParseMediaType(ctx.GetHeader("Content-Type"))
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
 	if err != nil {
 		log.Printf("An error occurred when Content-Type header: %v", err)
-		ctx.StatusCode(iris.StatusUnsupportedMediaType)
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 		return
 	}
 	if mediaType != "text/plain" {
 		log.Printf("Unsupported media type: %s", mediaType)
-		ctx.StatusCode(iris.StatusUnsupportedMediaType)
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 		return
 	}
 
-	rawBodyAsBytes, err := ioutil.ReadAll(ctx.Request().Body)
+	rawBodyAsBytes, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	if err != nil {
 		log.Printf("An error occurred when parsing body: %v", err)
-		ctx.StatusCode(iris.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -45,70 +56,75 @@ func createShortURL(ctx iris.Context) {
 
 	if !ok {
 		log.Printf("An error occurred generating hash...")
-		ctx.StatusCode(iris.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fullRequestURI := ctx.FullRequestURI()
-	url, err := url.Parse(fullRequestURI)
-	if err != nil {
-		log.Printf("An error occurred extracting request URI...")
-		ctx.StatusCode(iris.StatusInternalServerError)
-		return
-	}
-
-	hashedURL := url.Scheme + "://" + url.Host + "/" + hash
+	hashedURL := buildRedirectURL(r, hash)
 	hashedURLBytes := []byte(hashedURL)
 
-	ctx.Write(hashedURLBytes)
+	w.Header().Set("Content-Type", "text/plain")
+
+	w.Write(hashedURLBytes)
 }
 
-func redirectShortURL(ctx iris.Context) {
-	hash := ctx.Params().GetString("hash")
+func getRedirectShortURL(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+
 	urlInfo, ok := services.GetShortURLInfo(hash)
 
 	if !ok {
-		ctx.StatusCode(iris.StatusNotFound)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
 	log.Printf("Redirecting to: %v", urlInfo.URL)
-	ctx.Redirect(urlInfo.URL, iris.StatusPermanentRedirect)
+	http.Redirect(w, r, urlInfo.URL, http.StatusPermanentRedirect)
 }
 
-func getURLInfo(ctx iris.Context) {
+func getURLInfo(w http.ResponseWriter, r *http.Request) {
 
-	hash := ctx.Params().GetString("hash")
+	vars := mux.Vars(r)
+	hash := vars["hash"]
+
 	urlInfo, ok := services.GetShortURLInfo(hash)
 
 	if !ok {
-		ctx.StatusCode(iris.StatusNotFound)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
-	ctx.Header("Last-Modified", urlInfo.CreatedAt.UTC().String())
-	ctx.Writef(urlInfo.URL)
+	hashedURLBytes := []byte(urlInfo.URL)
+
+	w.Header().Set("Last-Modified", urlInfo.CreatedAt.Format(http.TimeFormat))
+	w.Header().Set("Content-Type", "text/plain")
+
+	w.Write(hashedURLBytes)
+}
+
+func getHTTPEnvPort() string {
+	envPort, ok := os.LookupEnv("HTTP_PORT")
+
+	if !ok || len(envPort) == 0 {
+		envPort = defaultHTTPPort
+	}
+
+	return envPort
 }
 
 // Run - runs HTTP environment
 func Run() {
 
-	app := iris.New()
-	app.Logger().SetLevel("debug")
+	r := mux.NewRouter()
 
-	app.Use(recover.New())
-	app.Use(logger.New())
+	r.HandleFunc("/", postShortURL).Methods(http.MethodPost)
+	r.HandleFunc("/{hash}", getRedirectShortURL).Methods(http.MethodGet)
+	r.HandleFunc("/info/{hash}", getURLInfo).Methods(http.MethodGet)
 
-	app.Post("/", createShortURL)
-	app.Get("/{hash:string}", redirectShortURL)
-	app.Get("/info/{hash:string}", getURLInfo)
+	port := getHTTPEnvPort()
 
-	envPort, ok := os.LookupEnv("HTTP_PORT")
-	if !ok || len(envPort) == 0 {
-		envPort = defaultHTTPPort
-	}
-
-	port := ":" + envPort
-
-	app.Run(iris.Addr(port), iris.WithoutServerError(iris.ErrServerClosed))
+	log.Printf("Listening HTTP in port %v ...", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
