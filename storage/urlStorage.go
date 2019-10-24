@@ -43,7 +43,7 @@ func init() {
 	connectionString := getMongoDBConnectionString()
 
 	// Set client options
-	clientOptions := options.Client().ApplyURI(connectionString)
+	clientOptions := options.Client().ApplyURI(connectionString).SetRetryWrites(false)
 
 	// connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
