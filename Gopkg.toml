@@ -24,10 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
-
 [[constraint]]
-  name = "github.com/kataras/iris"
-  version = "11.2.8"
+  name = "github.com/gorilla/mux"
+  version = "1.7.3"
 
 [[constraint]]
   name = "go.mongodb.org/mongo-driver"
