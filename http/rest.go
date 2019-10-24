@@ -105,7 +105,7 @@ func getURLInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func getHTTPEnvPort() string {
-	envPort, ok := os.LookupEnv("HTTP_PORT")
+	envPort, ok := os.LookupEnv("PORT")
 
 	if !ok || len(envPort) == 0 {
 		envPort = defaultHTTPPort
