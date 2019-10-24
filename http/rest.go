@@ -52,10 +52,10 @@ func postShortURL(w http.ResponseWriter, r *http.Request) {
 
 	urlToShorten := string(rawBodyAsBytes)
 
-	hash, ok := services.SetShortURL(urlToShorten)
+	hash, err := services.SetShortURL(urlToShorten)
 
-	if !ok {
-		log.Printf("An error occurred generating hash...")
+	if err != nil {
+		log.Printf("An error occurred generating hash: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
