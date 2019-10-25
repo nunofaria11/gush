@@ -55,8 +55,4 @@ Endpoint to request info on an URL.
 ## Environment variables
 
 - `HTTP_PORT` (default `8080`)
-- `MONGO_URL`
-- `MONGO_PORT`
-- `MONGO_PATH`
-- `MONGO_USERNAME`
-- `MONGO_PASSWORD`
+- `MONGO_DB_CONNECTION_STRING` (default `mongodb://localhost:27017`)
