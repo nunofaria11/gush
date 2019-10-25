@@ -22,28 +22,27 @@ var collection *mongo.Collection
 
 func getMongoDBConnectionString() string {
 	var connectionString string
+	var ok bool
 
-	url, ok := os.LookupEnv("MONGO_URL")
-	if ok {
-		user, _ := os.LookupEnv("MONGO_USER")
-		password, _ := os.LookupEnv("MONGO_PASSWORD")
-		port, _ := os.LookupEnv("MONGO_PORT")
-		path, _ := os.LookupEnv("MONGO_PATH")
-		connectionString = fmt.Sprintf("mongodb://%v:%v@%v:%v/%v", user, password, url, port, path)
-	} else {
+	connectionString, ok = os.LookupEnv("MONGO_DB_CONNECTION_STRING")
+	if !ok || len(connectionString) == 0 {
 		connectionString = defaultConnectionString
 	}
 
-	log.Print("Mongo DB connection:", connectionString)
+	log.Printf("Mongo DB connection: %v", connectionString)
 	return connectionString
 }
 
 func init() {
 
 	connectionString := getMongoDBConnectionString()
+	//wMajority := writeconcern.New(writeconcern.WMajority())
 
 	// Set client options
-	clientOptions := options.Client().ApplyURI(connectionString).SetRetryWrites(false)
+	clientOptions := options.Client()
+	clientOptions.ApplyURI(connectionString)
+	clientOptions.SetRetryWrites(true)
+	//clientOptions.SetWriteConcern(wMajority)
 
 	// connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
