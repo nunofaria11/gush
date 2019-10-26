@@ -7,6 +7,7 @@ import (
 	"log"
 	"mime"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -69,19 +70,32 @@ func postShortURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRedirectShortURL(w http.ResponseWriter, r *http.Request) {
+	var redirectURL string
 
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 
-	urlInfo, ok := services.GetShortURLInfo(hash)
+	urlInfo, err := services.GetShortURLInfo(hash)
 
-	if !ok {
+	if err != nil {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
-	log.Printf("Redirecting to: %v", urlInfo.URL)
-	http.Redirect(w, r, urlInfo.URL, http.StatusPermanentRedirect)
+	redirectURL = urlInfo.URL
+	parsedURL, err := url.Parse(redirectURL)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(parsedURL.Scheme) == 0 {
+		redirectURL = "http://" + redirectURL
+	}
+
+	log.Printf("Redirecting to: %v", redirectURL)
+	http.Redirect(w, r, redirectURL, http.StatusPermanentRedirect)
 }
 
 func getURLInfo(w http.ResponseWriter, r *http.Request) {
@@ -89,9 +103,9 @@ func getURLInfo(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 
-	urlInfo, ok := services.GetShortURLInfo(hash)
+	urlInfo, err := services.GetShortURLInfo(hash)
 
-	if !ok {
+	if err != nil {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
