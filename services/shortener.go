@@ -33,15 +33,15 @@ func createURLInfo(url string, hash string) *models.URLInfo {
 }
 
 // GetShortURLInfo Retrieves a URLInfo object
-func GetShortURLInfo(hash string) (*models.URLInfo, bool) {
+func GetShortURLInfo(hash string) (*models.URLInfo, error) {
 
 	urlInfo, err := storage.FetchURLInfo(hash)
 
 	if err != nil {
-		return nil, false
+		return nil, err
 	}
 
-	return urlInfo, true
+	return urlInfo, nil
 }
 
 // SetShortURL Stores a URLInfo object and associates with the hash
