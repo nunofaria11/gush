@@ -47,18 +47,21 @@ func GetShortURLInfo(hash string) (*models.URLInfo, error) {
 // SetShortURL Stores a URLInfo object and associates with the hash
 func SetShortURL(urlToShorten string) (string, error) {
 
+	var existingURLInfo *models.URLInfo
 	var hash string
+	var err error
 
 	exists := true
 
 	for exists {
 		hash = generateHash(6)
-		_, exists = GetShortURLInfo(hash)
+		existingURLInfo, err = GetShortURLInfo(hash)
+		exists = existingURLInfo != nil
 	}
 
 	urlInfo := createURLInfo(urlToShorten, hash)
 
-	err := storage.StoreURLInfo(urlInfo)
+	err = storage.StoreURLInfo(urlInfo)
 	if err != nil {
 		return "", err
 	}
